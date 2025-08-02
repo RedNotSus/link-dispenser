@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { Links, UserLinkData, sequelize } = require("./database");
+const { Links, UserLinkData, UserSentLinks, sequelize } = require("./database");
 const moment = require("moment");
 
 const app = express();
@@ -178,6 +178,11 @@ app.post("/api/users/:userId/reset", authenticate, async (req, res) => {
         FirstUsed: null,
       });
     }
+
+    // Also clear all sent links for this user
+    await UserSentLinks.destroy({
+      where: { userId: userId },
+    });
 
     res.json({
       success: true,

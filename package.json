@@ -5,8 +5,10 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "start:check": "node startup.js",
     "dev": "node src/index.js",
     "api": "node src/api.js",
+    "register-commands": "node register-commands.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
