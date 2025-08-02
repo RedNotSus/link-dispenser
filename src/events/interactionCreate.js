@@ -289,7 +289,7 @@ async function handleGetLink(interaction) {
       .addFields(
         {
           name: "🌐 Website Link",
-          value: `[Click Here](${randomLink.link})`,
+          value: `${randomLink.link}`,
           inline: false,
         },
         {
