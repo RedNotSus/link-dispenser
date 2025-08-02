@@ -46,10 +46,8 @@ module.exports = {
         });
       }
 
-      // Clear all sent links for this user to allow them to get links again
-      await UserSentLinks.destroy({
-        where: { userId: targetUser.id },
-      });
+      // Note: Not clearing UserSentLinks to preserve link history
+      // User will get their count reset but won't receive duplicate links
 
       const embed = new EmbedBuilder()
         .setTitle("✅ User Reset Successful")
