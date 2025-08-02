@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Dispenser - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5e7694 0%, #4a6077 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            color: #5e7694;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #5e7694;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #5e7694;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .api-key-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .api-key-input input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #5e7694;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4a6077;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .links-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .link-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .link-url {
+            flex: 1;
+            margin-right: 10px;
+            word-break: break-all;
+        }
+
+        .add-link-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .add-link-form input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .users-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-id {
+            font-family: monospace;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .user-stats {
+            color: #5e7694;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🔗 Link Dispenser Admin Dashboard</h1>
+        <p>Manage your Discord link dispenser system</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h3>🔑 API Configuration</h3>
+            <div class="api-key-input">
+                <input type="password" id="apiKey" placeholder="Enter your API key">
+                <button class="btn btn-primary" onclick="setApiKey()">Set API Key</button>
+            </div>
+            <div id="apiStatus" class="status-message"></div>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>📊 System Statistics</h3>
+                <div id="statsContainer" class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalLinks">-</div>
+                        <div class="stat-label">Total Links</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalUsers">-</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="linksDispensed">-</div>
+                        <div class="stat-label">Links Dispensed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="activeUsers">-</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="loadStats()" style="margin-top: 15px;">
+                    🔄 Refresh Stats
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>🔗 Link Management</h3>
+                <div class="add-link-form">
+                    <input type="url" id="newLinkUrl" placeholder="https://example.com">
+                    <button class="btn btn-success" onclick="addLink()">Add Link</button>
+                </div>
+                <div id="linkStatus" class="status-message"></div>
+                <div id="linksContainer" class="links-list">
+                    <!-- Links will be loaded here -->
+                </div>
+                <button class="btn btn-primary" onclick="loadLinks()" style="margin-top: 15px;">
+                    🔄 Refresh Links
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>👥 User Management</h3>
+                <div id="usersContainer" class="users-list">
+                    <!-- Users will be loaded here -->
+                </div>
+                <button class="btn btn-primary" onclick="loadUsers()" style="margin-top: 15px;">
+                    🔄 Refresh Users
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let apiKey = '';
+
+        function setApiKey() {
+            apiKey = document.getElementById('apiKey').value;
+            if (apiKey) {
+                showStatus('apiStatus', 'API key set successfully!', 'success');
+                loadStats();
+                loadLinks();
+                loadUsers();
+            } else {
+                showStatus('apiStatus', 'Please enter an API key', 'error');
+            }
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status-message status-${type}`;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+
+        async function apiRequest(endpoint, options = {}) {
+            if (!apiKey) {
+                showStatus('apiStatus', 'Please set your API key first', 'error');
+                return null;
+            }
+
+            const url = `/api/${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': apiKey
+                },
+                ...options
+            };
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Request failed');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API request failed:', error);
+                showStatus('apiStatus', `Error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function loadStats() {
+            const container = document.getElementById('statsContainer');
+            container.classList.add('loading');
+
+            const data = await apiRequest('stats');
+
+            if (data && data.success) {
+                document.getElementById('totalLinks').textContent = data.statistics.totalLinks;
+                document.getElementById('totalUsers').textContent = data.statistics.totalUsers;
+                document.getElementById('linksDispensed').textContent = data.statistics.totalLinksDispensed;
+                document.getElementById('activeUsers').textContent = data.statistics.activeUsers;
+            }
+
+            container.classList.remove('loading');
+        }
+
+        async function loadLinks() {
+            const container = document.getElementById('linksContainer');
+            container.classList.add('loading');
+
+            const data = await apiRequest('links');
+
+            if (data && data.success) {
+                container.innerHTML = '';
+
+                if (data.links.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #666;">No links found</p>';
+                } else {
+                    data.links.forEach(link => {
+                        const linkElement = document.createElement('div');
+                        linkElement.className = 'link-item';
+                        linkElement.innerHTML = `
+                            <div class="link-url">${link.url}</div>
+                            <button class="btn btn-danger btn-sm" onclick="removeLink(${link.id})">
+                                🗑️ Remove
+                            </button>
+                        `;
+                        container.appendChild(linkElement);
+                    });
+                }
+            }
+
+            container.classList.remove('loading');
+        }
+
+        async function addLink() {
+            const urlInput = document.getElementById('newLinkUrl');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showStatus('linkStatus', 'Please enter a URL', 'error');
+                return;
+            }
+
+            const data = await apiRequest('links', {
+                method: 'POST',
+                body: JSON.stringify({ url })
+            });
+
+            if (data && data.success) {
+                showStatus('linkStatus', 'Link added successfully!', 'success');
+                urlInput.value = '';
+                loadLinks();
+                loadStats();
+            }
+        }
+
+        async function removeLink(linkId) {
+            if (!confirm('Are you sure you want to remove this link?')) {
+                return;
+            }
+
+            const data = await apiRequest(`links/${linkId}`, {
+                method: 'DELETE'
+            });
+
+            if (data && data.success) {
+                showStatus('linkStatus', 'Link removed successfully!', 'success');
+                loadLinks();
+                loadStats();
+            }
+        }
+
+        async function loadUsers() {
+            const container = document.getElementById('usersContainer');
+            container.classList.add('loading');
+
+            const data = await apiRequest('users');
+
+            if (data && data.success) {
+                container.innerHTML = '';
+
+                if (data.users.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #666;">No users found</p>';
+                } else {
+                    data.users.forEach(user => {
+                        const userElement = document.createElement('div');
+                        userElement.className = 'user-item';
+                        userElement.innerHTML = `
+                            <div class="user-info">
+                                <div class="user-id">${user.userId}</div>
+                                <div class="user-stats">${user.linksGiven}/3 used, ${user.remaining} remaining</div>
+                                ${user.nextReset ? `<div style="font-size: 0.8em; color: #666;">Reset: ${user.nextReset}</div>` : ''}
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="resetUser('${user.userId}')">
+                                🔄 Reset
+                            </button>
+                        `;
+                        container.appendChild(userElement);
+                    });
+                }
+            }
+
+            container.classList.remove('loading');
+        }
+
+        async function resetUser(userId) {
+            if (!confirm(`Are you sure you want to reset the limit for user ${userId}?`)) {
+                return;
+            }
+
+            const data = await apiRequest(`users/${userId}/reset`, {
+                method: 'POST'
+            });
+
+            if (data && data.success) {
+                showStatus('apiStatus', 'User limit reset successfully!', 'success');
+                loadUsers();
+                loadStats();
+            }
+        }
+
+        // Auto-load data on page load if API key is already set
+        window.addEventListener('load', () => {
+            const savedApiKey = localStorage.getItem('linkDispenserApiKey');
+            if (savedApiKey) {
+                document.getElementById('apiKey').value = savedApiKey;
+                apiKey = savedApiKey;
+                loadStats();
+                loadLinks();
+                loadUsers();
+            }
+        });
+
+        // Save API key to localStorage
+        function setApiKey() {
+            apiKey = document.getElementById('apiKey').value;
+            if (apiKey) {
+                localStorage.setItem('linkDispenserApiKey', apiKey);
+                showStatus('apiStatus', 'API key set successfully!', 'success');
+                loadStats();
+                loadLinks();
+                loadUsers();
+            } else {
+                showStatus('apiStatus', 'Please enter an API key', 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

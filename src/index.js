@@ -139,7 +139,11 @@ const commandFolders = fs.readdirSync("./src/commands");
   client.prefixCommands(pcommandFolders, "./src/prefix");
   client
     .login(process.env.DISCORD_TOKEN)
-    .then(() => {})
+    .then(() => {
+      // Start the API server after successful Discord login
+      const { startServer } = require("./api");
+      startServer();
+    })
     .catch((error) => {
       console.error(
         `${color.red}[${getTimestamp()}]${

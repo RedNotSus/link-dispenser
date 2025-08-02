@@ -19,6 +19,7 @@ const Username = require("../models/usernames")(sequelize);
 const AFK = require("../models/AFK")(sequelize);
 const Links = require("../models/links")(sequelize);
 const UserLinkData = require("../models/userLinkData")(sequelize);
+const UserSentLinks = require("../models/userSentLinks")(sequelize);
 
 const syncDatabase = async () => {
   try {
@@ -37,4 +38,5 @@ module.exports = {
   syncDatabase,
   Links,
   UserLinkData,
+  UserSentLinks,
 };

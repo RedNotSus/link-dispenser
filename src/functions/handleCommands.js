@@ -1,75 +1,113 @@
 const { REST } = require("@discordjs/rest");
-const { Routes } = require('discord-api-types/v9');
-const fs = require('fs');
+const { Routes } = require("discord-api-types/v9");
+const fs = require("fs");
 const ascii = require("ascii-table");
 const table = new ascii().setHeading("File Name", "Status");
 
-const CLIENT_ID = process.env.CLIENT_ID; 
-const GUILD_ID = process.env.GUILD_ID; 
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
 
 module.exports = (client) => {
-    client.handleCommands = async (commandFolders, path) => {
-        client.commandArray = [];
-        for (folder of commandFolders) {
-            const commandFiles = fs.readdirSync(`${path}/${folder}`).filter(file => file.endsWith('.js'));
-            for (const file of commandFiles) {
-                const command = require(`../commands/${folder}/${file}`);
-                client.commands.set(command.data.name, command);
-                client.commandArray.push(command.data.toJSON());
+  client.handleCommands = async (commandFolders, path) => {
+    client.commandArray = [];
+    for (folder of commandFolders) {
+      const commandFiles = fs
+        .readdirSync(`${path}/${folder}`)
+        .filter((file) => file.endsWith(".js"));
+      for (const file of commandFiles) {
+        const command = require(`../commands/${folder}/${file}`);
+        client.commands.set(command.data.name, command);
+        client.commandArray.push(command.data.toJSON());
 
-                if (command.name) {
-                    client.commands.set(command.name, command);
-                    table.addRow(file, "Loaded");
-                } else {
-                    table.addRow(file, "Loaded");
-                    continue;
-                }
-            }
+        if (command.name) {
+          client.commands.set(command.name, command);
+          table.addRow(file, "Loaded");
+        } else {
+          table.addRow(file, "Loaded");
+          continue;
         }
+      }
+    }
 
-        const color = {
-            red: '\x1b[31m',
-            orange: '\x1b[38;5;202m',
-            yellow: '\x1b[33m',
-            green: '\x1b[32m',
-            blue: '\x1b[34m',
-            reset: '\x1b[0m'
-        }
-
-        function getTimestamp() {
-            const date = new Date();
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const seconds = date.getSeconds();
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        }
-
-        console.log(`${color.blue}${table.toString()} \n[${getTimestamp()}] ${color.reset}[COMMANDS] Loaded ${client.commands.size} SlashCommands.`);
-
-        const rest = new REST({
-            version: '9'
-        }).setToken(process.env.DISCORD_TOKEN);
-
-        (async () => {
-            try {
-                client.logs.info(`[FUNCTION] Started refreshing application (/) commands.`);
-
-                await rest.put(
-                    Routes.applicationCommands(CLIENT_ID), {
-                        body: client.commandArray
-                    },
-                ).catch((error) => {
-                    console.error(`${color.red}[${getTimestamp()}] [FUNCTION] Error while refreshing application (/) commands. \n${color.red}[${getTimestamp()}] [FUNCTION] Check if your CLIENT_ID is correct and matches your bots token:`, error);
-                });
-
-                client.logs.success(`[FUNCTION] Successfully reloaded application (/) commands.`);
-            } catch (error) {
-                console.error(error);
-                client.logs.error('[FUNCTION] Error loading slash commands.', error);
-            }
-        })();
+    const color = {
+      red: "\x1b[31m",
+      orange: "\x1b[38;5;202m",
+      yellow: "\x1b[33m",
+      green: "\x1b[32m",
+      blue: "\x1b[34m",
+      reset: "\x1b[0m",
     };
+
+    function getTimestamp() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      const seconds = date.getSeconds();
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    console.log(
+      `${color.blue}${table.toString()} \n[${getTimestamp()}] ${
+        color.reset
+      }[COMMANDS] Loaded ${client.commands.size} SlashCommands.`
+    );
+
+    const rest = new REST({
+      version: "9",
+    }).setToken(process.env.DISCORD_TOKEN);
+
+    (async () => {
+      try {
+        client.logs.info(
+          `[FUNCTION] Started refreshing application (/) commands.`
+        );
+
+        // Use guild commands for faster updates during development
+        if (GUILD_ID) {
+          await rest
+            .put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
+              body: client.commandArray,
+            })
+            .catch((error) => {
+              console.error(
+                `${
+                  color.red
+                }[${getTimestamp()}] [FUNCTION] Error while refreshing guild (/) commands. \n${
+                  color.red
+                }[${getTimestamp()}] [FUNCTION] Check if your CLIENT_ID and GUILD_ID are correct:`,
+                error
+              );
+            });
+          client.logs.success(
+            `[FUNCTION] Successfully reloaded guild (/) commands for guild ${GUILD_ID}.`
+          );
+        } else {
+          // Fallback to global commands
+          await rest
+            .put(Routes.applicationCommands(CLIENT_ID), {
+              body: client.commandArray,
+            })
+            .catch((error) => {
+              console.error(
+                `${
+                  color.red
+                }[${getTimestamp()}] [FUNCTION] Error while refreshing application (/) commands. \n${
+                  color.red
+                }[${getTimestamp()}] [FUNCTION] Check if your CLIENT_ID is correct and matches your bots token:`,
+                error
+              );
+            });
+          client.logs.success(
+            `[FUNCTION] Successfully reloaded global (/) commands.`
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        client.logs.error("[FUNCTION] Error loading slash commands.", error);
+      }
+    })();
+  };
 };
