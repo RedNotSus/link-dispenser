@@ -28,7 +28,6 @@ const typeEmojis = {
 const BASE_ANIMU_URL = "https://api.some-random-api.com/animu";
 
 module.exports = {
-  developer: true,
   data: new SlashCommandBuilder()
     .setName("animu")
     .setDescription("Get a random anime image or reaction")

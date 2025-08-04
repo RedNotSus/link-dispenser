@@ -7,8 +7,6 @@ const {
 const { parse } = require("twemoji-parser");
 
 module.exports = {
-  developer: true,
-
   data: new SlashCommandBuilder()
     .setName("bigemoji")
     .setDescription("Enlarge an emoji with style!")

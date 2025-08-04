@@ -12,22 +12,25 @@ const animals = [
   "kangaroo",
   "whale",
   "dog",
-  "bird"
+  "bird",
 ];
 
 const BASE_URL = "https://some-random-api.com/animal";
 
 module.exports = {
-  developer: true,
   data: new SlashCommandBuilder()
     .setName("animal")
-    .setDescription("🐾 Show a random animal image, guaranteed to melt your heart!")
+    .setDescription(
+      "🐾 Show a random animal image, guaranteed to melt your heart!"
+    )
     .addStringOption((option) =>
       option
         .setName("type")
         .setDescription("Pick your favorite animal 🐕🐈🦊")
         .setRequired(true)
-        .addChoices(...animals.map((animal) => ({ name: animal, value: animal })))
+        .addChoices(
+          ...animals.map((animal) => ({ name: animal, value: animal }))
+        )
     ),
 
   /**
@@ -49,11 +52,14 @@ module.exports = {
       if (!response || !response.image) {
         const errEmbed = new EmbedBuilder()
           .setColor(client.config.errorEmbed ?? "#ff3333")
-          .setTitle("\`⚠️\` API Error")
+          .setTitle("`⚠️` API Error")
           .setDescription(
             "Oops! Couldn't fetch that animal image right now. Try again later!"
           )
-          .setFooter({ text: `Requested by ${user.tag}`, iconURL: user.displayAvatarURL({ dynamic: true }) })
+          .setFooter({
+            text: `Requested by ${user.tag}`,
+            iconURL: user.displayAvatarURL({ dynamic: true }),
+          })
           .setTimestamp();
 
         return await interaction.editReply({ embeds: [errEmbed] });
@@ -63,18 +69,24 @@ module.exports = {
         .setColor(client.config.embedColor ?? "#5865F2")
         .setTitle(`Here's your ${choice} 🐾`)
         .setImage(response.image)
-        .setFooter({ text: `Requested by ${user.tag}`, iconURL: user.displayAvatarURL({ dynamic: true }) })
+        .setFooter({
+          text: `Requested by ${user.tag}`,
+          iconURL: user.displayAvatarURL({ dynamic: true }),
+        })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       const errEmbed = new EmbedBuilder()
         .setColor(client.config.errorEmbed ?? "#ff3333")
-        .setTitle("\`❌\` Error")
+        .setTitle("`❌` Error")
         .setDescription(
           "Something went sideways while getting your animal pic. Try again in a bit!"
         )
-        .setFooter({ text: `Requested by ${user.tag}`, iconURL: user.displayAvatarURL({ dynamic: true }) })
+        .setFooter({
+          text: `Requested by ${user.tag}`,
+          iconURL: user.displayAvatarURL({ dynamic: true }),
+        })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [errEmbed] });

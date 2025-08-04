@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 module.exports = {
-  developer: true,
   data: new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Replies with pong and shows latency."),

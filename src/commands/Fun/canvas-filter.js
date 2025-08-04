@@ -25,7 +25,6 @@ const filtersWithParams = {
 };
 
 module.exports = {
-  developer: true,
   data: new SlashCommandBuilder()
     .setName("canvas-filter")
     .setDescription("Apply a Filter canvas effect to a user's avatar")
@@ -37,7 +36,10 @@ module.exports = {
         .addChoices(...filterEffects.map((f) => ({ name: f, value: f })))
     )
     .addUserOption((option) =>
-      option.setName("target").setDescription("Select a user").setRequired(false)
+      option
+        .setName("target")
+        .setDescription("Select a user")
+        .setRequired(false)
     )
     .addIntegerOption((option) =>
       option
@@ -72,7 +74,10 @@ module.exports = {
       if (filter === "color") {
         params.append(paramName, color || filtersWithParams[filter].default);
       } else {
-        params.append(paramName, value !== null ? value : filtersWithParams[filter].default);
+        params.append(
+          paramName,
+          value !== null ? value : filtersWithParams[filter].default
+        );
       }
     }
 
@@ -80,7 +85,8 @@ module.exports = {
 
     try {
       const res = await fetch(endpoint);
-      if (!res.ok) throw new Error(`API request failed with status ${res.status}`);
+      if (!res.ok)
+        throw new Error(`API request failed with status ${res.status}`);
 
       const buffer = await res.buffer();
 

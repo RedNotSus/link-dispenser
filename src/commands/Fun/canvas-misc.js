@@ -15,7 +15,6 @@ const miscEffects = [
 ];
 
 module.exports = {
-  developer: true,
   data: new SlashCommandBuilder()
     .setName("canvas-misc")
     .setDescription("Apply a Miscellaneous canvas effect to a user's avatar")
@@ -27,7 +26,10 @@ module.exports = {
         .addChoices(...miscEffects.map((e) => ({ name: e, value: e })))
     )
     .addUserOption((option) =>
-      option.setName("target").setDescription("Select a user").setRequired(false)
+      option
+        .setName("target")
+        .setDescription("Select a user")
+        .setRequired(false)
     )
     .addStringOption((option) =>
       option
@@ -67,7 +69,8 @@ module.exports = {
     if (effect === "its-so-stupid") {
       if (!text1) {
         return interaction.editReply({
-          content: "❌ You must provide the 'dog' text for this effect in text1 parameter.",
+          content:
+            "❌ You must provide the 'dog' text for this effect in text1 parameter.",
           ephemeral: true,
         });
       }
@@ -110,7 +113,8 @@ module.exports = {
 
     try {
       const res = await fetch(endpoint);
-      if (!res.ok) throw new Error(`API request failed with status ${res.status}`);
+      if (!res.ok)
+        throw new Error(`API request failed with status ${res.status}`);
 
       const buffer = await res.buffer();
 
