@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("donutStatus")
+    .setName("donutstatus")
     .setDescription("Check the status of a user on DonutSMP")
     .addStringOption((option) =>
       option
