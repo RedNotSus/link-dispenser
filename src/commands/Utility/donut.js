@@ -32,7 +32,7 @@ module.exports = {
         });
       }
       const statusText = `**User:** ${data.user}\n**Online:** ${
-        data.online ? "🟢 Yes" : "🔴 No"
+        data.online ? "Yes" : "No"
       }\n**Location:** ${data.location}\n**Shards:** ${data.shards || "N/A"}`;
 
       const embed = new EmbedBuilder()
