@@ -16,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/builders": "^1.11.2",
+    "@google/genai": "^1.29.0",
     "array-move-item": "^1.0.0",
     "ascii-table": "^0.0.9",
     "cors": "^2.8.5",
