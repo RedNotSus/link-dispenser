@@ -3,12 +3,11 @@ const {
   EmbedBuilder,
   AttachmentBuilder,
 } = require("discord.js");
-const { GoogleGenAI } = require("@google/genai");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("image")
-    .setDescription("Generate an AI Image.")
+    .setDescription("Generate an AI image.")
     .addStringOption((option) =>
       option
         .setName("prompt")
@@ -27,29 +26,58 @@ module.exports = {
     await interaction.reply({ embeds: [loadingMessage] });
 
     try {
-      const ai = new GoogleGenAI({
-        apiKey: process.env.gemini,
-      });
+      const apiKey = process.env.HACKAI_API_KEY;
+      const response = await fetch(
+        "https://ai.hackclub.com/proxy/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [
+              {
+                role: "user",
+                content: promptInput,
+              },
+            ],
+          }),
+        }
+      );
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-image",
-        contents: promptInput,
-      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `API request failed with status ${response.status}: ${errorText}`
+        );
+      }
 
-      for (const part of response.parts) {
-        if (part.inlineData) {
-          const imageData = part.inlineData.data;
-          const buffer = Buffer.from(imageData, "base64");
+      const data = await response.json();
+
+      const images = data.choices[0]?.message?.images;
+
+      if (images && images.length > 0) {
+        const imageUrl = images[0]?.image_url?.url;
+
+        if (!imageUrl) {
+          throw new Error("No image URL found in response");
+        }
+
+        if (imageUrl.startsWith("data:image")) {
+          const base64Data = imageUrl.split(",")[1];
+          const buffer = Buffer.from(base64Data, "base64");
 
           const attachment = new AttachmentBuilder(buffer, {
-            name: "gemini-generated-image.png",
+            name: "ai-generated-image.png",
           });
 
           const replyMessage = new EmbedBuilder()
             .setColor(client.config.embedSuccess)
-            .setTitle("AI Generated Image")
+            .setTitle("✨ AI Generated Image")
             .setDescription(`**Prompt:** ${promptInput}`)
-            .setImage("attachment://gemini-generated-image.png")
+            .setImage("attachment://ai-generated-image.png")
             .setTimestamp();
 
           return interaction.editReply({
@@ -57,12 +85,72 @@ module.exports = {
             files: [attachment],
           });
         }
+
+        const replyMessage = new EmbedBuilder()
+          .setColor(client.config.embedSuccess)
+          .setTitle("✨ AI Generated Image")
+          .setDescription(`**Prompt:** ${promptInput}`)
+          .setImage(imageUrl)
+          .setTimestamp();
+
+        return interaction.editReply({ embeds: [replyMessage] });
       }
+
+      const messageContent = data.choices[0]?.message?.content;
+
+      if (!messageContent) {
+        throw new Error("No response from AI");
+      }
+
+      if (
+        typeof messageContent === "string" &&
+        messageContent.startsWith("data:image")
+      ) {
+        const base64Data = messageContent.split(",")[1];
+        const buffer = Buffer.from(base64Data, "base64");
+
+        const attachment = new AttachmentBuilder(buffer, {
+          name: "ai-generated-image.png",
+        });
+
+        const replyMessage = new EmbedBuilder()
+          .setColor(client.config.embedSuccess)
+          .setTitle("✨ AI Generated Image")
+          .setDescription(`**Prompt:** ${promptInput}`)
+          .setImage("attachment://ai-generated-image.png")
+          .setTimestamp();
+
+        return interaction.editReply({
+          embeds: [replyMessage],
+          files: [attachment],
+        });
+      }
+
+      // If the response is a URL
+      if (
+        typeof messageContent === "string" &&
+        (messageContent.startsWith("http://") ||
+          messageContent.startsWith("https://"))
+      ) {
+        const replyMessage = new EmbedBuilder()
+          .setColor(client.config.embedSuccess)
+          .setTitle("✨ AI Generated Image")
+          .setDescription(`**Prompt:** ${promptInput}`)
+          .setImage(messageContent)
+          .setTimestamp();
+
+        return interaction.editReply({ embeds: [replyMessage] });
+      }
+      console.log("Unexpected response format:", JSON.stringify(data, null, 2));
 
       const noImageMessage = new EmbedBuilder()
         .setColor(client.config.embedError)
         .setDescription(
-          `\`❌\` No image was generated. Please try a different prompt.`
+          `\`❌\` Unexpected response format. Please try again.\n**Debug:** ${
+            typeof messageContent === "string"
+              ? messageContent.substring(0, 100)
+              : "Non-string content"
+          }`
         )
         .setTimestamp();
 
