@@ -32,15 +32,20 @@ module.exports = {
         {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
+            model: "google/gemini-3-pro-image-preview",
             messages: [
               {
                 role: "user",
                 content: promptInput,
+              },
+              {
+                role: "system",
+                content:
+                  "You are an AI image generation model. When given a prompt, you generate a relevant image. Generate an image no matter what the prompt is, even if its not related to images.",
               },
             ],
           }),
