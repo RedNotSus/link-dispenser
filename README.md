@@ -40,7 +40,7 @@ A modern Discord bot for dispensing unblocked website links with monthly user li
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/RedNotSus/link-dispenser.git
+   git clone https://github.com/jiayangc1/link-dispenser.git
    cd link-dispenser
    ```
 
